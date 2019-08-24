@@ -121,7 +121,7 @@ def index_character(redis, normalized_character):
 
     queue = Queue("backend-index", connection=redis)
     for post_data in search_api(character_tags):
-        if redis.sismember("index:sites:danbooru:source_ids", post_data["id"]):
+        if redis.sismember("index:sites:gelbooru:source_ids", post_data["id"]):
             continue
 
         queue_data = gelbooru_post_to_queued_image((normalized_character,), post_data)
