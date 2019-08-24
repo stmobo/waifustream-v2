@@ -74,6 +74,10 @@ class IndexedImage(object):
             )
         )
 
+        del d["characters"]
+        del d["authors"]
+        del d["source_tags"]
+
         tr = redis.pipeline()
 
         tr.set(imhash_key, self.img_id)
