@@ -136,7 +136,7 @@ def index_character(redis, normalized_character):
         if queue_data.source_url is None:
             continue
 
-        splits = queue_data.source_url.rsplit(".", maxsplit=1)
+        splits = queue_data.source_url.rsplit(".", maxsplit=1) # pylint: disable=no-member
 
         if len(splits) == 2:
             if splits[1] not in ["png", "jpeg", "jpg", "gif"]:
