@@ -75,10 +75,10 @@ def search_api(tags, start_id=None):
         print("[search] tags: {} - page {}".format(" ".join(tags), page))
         response = requests.get(construct_search_endpoint(page, tags, start_id))
 
-        if response.status < 200 or response.status > 299:
+        if response.status_code < 200 or response.status_code > 299:
             print(
                 "    Got error response code {} when retrieving {} page {}".format(
-                    str(response.status), " ".join(tags), page
+                    str(response.status_code), " ".join(tags), page
                 )
             )
             n_tries += 1
