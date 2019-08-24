@@ -112,7 +112,22 @@ def search_api(tags, start_id=None):
             yield d
 
 
-def index_character(redis, normalized_character, character_tag):
+def associate_character_tag(redis, normalized_character, character_tag):
+    tr = redis.pipeline()
+
+    tr.sadd("danbooru:characters", normalized_character)
+    tr.set("danbooru:characters:" + normalized_character, character_tag)
+
+    tr.execute()
+
+
+def index_character(redis, normalized_character):
+    character_tag = redis.get("danbooru:characters:" + normalized_character)
+    if character_tag is None:
+        return
+
+    character_tag = character_tag.decode("utf-8")
+
     queue = Queue("backend-index", connection=redis)
     for post_data in search_api([character_tag]):
         queue_data = danbooru_post_to_queued_image((normalized_character,), post_data)
