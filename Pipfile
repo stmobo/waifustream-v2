@@ -15,6 +15,7 @@ redis = "*"
 imagehash = "*"
 requests = "*"
 pillow = "*"
+rq-dashboard = "*"
 
 [requires]
 python_version = "3.7"
