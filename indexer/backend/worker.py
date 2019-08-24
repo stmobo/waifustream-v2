@@ -43,6 +43,12 @@ def process_queued_image(queued_image):
     indexed_img = IndexedImage.from_queued_image(img_id, imhash, queued_image)
     indexed_img.save_to_index(REDIS)
 
+    print(
+        "Processed: {}#{} ==> img_id:{}".format(
+            indexed_img.source_site, indexed_img.source_id, indexed_img.img_id
+        )
+    )
+
     time.sleep(0.5)  # ratelimit to avoid hitting source servers too hard
 
 
