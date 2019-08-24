@@ -26,5 +26,5 @@ def main():
     WORKER_ID = int(sys.argv[2])
 
     with Connection(REDIS):
-        worker = Worker(["scraper"])
+        worker = Worker(["scraper"], name="scraper-{:d}".format(WORKER_ID))
         worker.work()

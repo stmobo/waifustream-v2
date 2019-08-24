@@ -1,5 +1,6 @@
 import io
 import sys
+import time
 
 from PIL import Image
 from redis import Redis
@@ -42,6 +43,8 @@ def process_queued_image(queued_image):
     indexed_img = IndexedImage.from_queued_image(img_id, imhash, queued_image)
     indexed_img.save_to_index(REDIS)
 
+    time.sleep(0.5)  # ratelimit to avoid hitting source servers too hard
+
 
 def main():
     global REDIS, WORKER_ID
@@ -52,5 +55,5 @@ def main():
     WORKER_ID = int(sys.argv[2])
 
     with Connection(REDIS):
-        worker = Worker(["backend-index"])
+        worker = Worker(["backend-index"], name="backend-{:d}".format(WORKER_ID))
         worker.work()
