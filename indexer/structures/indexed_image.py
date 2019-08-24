@@ -75,6 +75,7 @@ class IndexedImage(object):
         tr = redis.pipeline()
 
         tr.set(imhash_key, self.img_id)
+        tr.sadd("index:images", self.img_id)
 
         tr.delete(redis_key)
         tr.hmset(redis_key, d)
@@ -88,6 +89,24 @@ class IndexedImage(object):
 
         tr.delete(redis_key + ":source_tags")
         tr.sadd(redis_key + ":source_tags", self.queued_img_data.source_tags)
+
+        tr.sadd("index:sites:" + self.queued_img_data.source_site, self.img_id)
+        tr.sadd("index:rating:" + self.queued_img_data.sfw_rating, self.img_id)
+
+        for character in self.queued_img_data.characters:
+            tr.sadd("index:characters", character)
+            tr.sadd("index:characters:" + character, self.img_id)
+
+        for author in self.queued_img_data.authors:
+            tr.sadd("index:authors", author)
+            tr.sadd("index:authors:" + author, self.img_id)
+
+        for tag in self.queued_img_data.source_tags:
+            tr.sadd("index:tags:" + self.queued_img_data.source_site, tag)
+            tr.sadd(
+                "index:tags:" + self.queued_img_data.source_site + ":" + tag,
+                self.img_id,
+            )
 
         tr.execute()
 
