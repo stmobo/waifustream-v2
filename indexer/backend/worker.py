@@ -33,6 +33,12 @@ def download_image(url):
 def process_queued_image(queued_image):
     global REDIS, WORKER_ID
 
+    if REDIS.sismember(
+        "index:sites:" + queued_image.source_site + ":source_ids",
+        queued_image.source_id,
+    ):
+        return
+
     img = download_image(queued_image.source_url)
     imhash = compute_image_hash(img)
 
