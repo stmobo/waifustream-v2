@@ -28,6 +28,6 @@ def main():
 
     with Connection(REDIS):
         worker = Worker(
-            ["scraper"], name="scraper-{:d}-{:s}".format(WORKER_ID, os.getpid())
+            ["scraper"], name="scraper-{:d}-{:d}".format(WORKER_ID, os.getpid())
         )
         worker.work()
