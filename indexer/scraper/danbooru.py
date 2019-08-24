@@ -132,5 +132,14 @@ def index_character(redis, normalized_character):
     for post_data in search_api([character_tag]):
         queue_data = danbooru_post_to_queued_image((normalized_character,), post_data)
 
+        # check URL filetype:
+        if queue_data.source_url is None:
+            continue
+
+        _, ext = queue_data.source_url.rsplit(".", maxsplit=1)
+
+        if ext not in ["png", "jpeg", "jpg", "gif"]:
+            continue
+
         queue.enqueue("indexer.backend.worker.process_queued_image", queue_data)
         print("Danbooru: Enqueued post {} for indexing".format(queue_data.source_id))
