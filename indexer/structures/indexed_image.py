@@ -88,13 +88,19 @@ class IndexedImage(object):
 
         # pylint: disable=no-member
         tr.delete(redis_key + ":characters")
-        tr.sadd(redis_key + ":characters", *self.queued_img_data.characters)
+
+        if len(self.queued_img_data.characters) > 0:
+            tr.sadd(redis_key + ":characters", *self.queued_img_data.characters)
 
         tr.delete(redis_key + ":authors")
-        tr.sadd(redis_key + ":authors", *self.queued_img_data.authors)
+        
+        if len(self.queued_img_data.authors) > 0:
+            tr.sadd(redis_key + ":authors", *self.queued_img_data.authors)
 
         tr.delete(redis_key + ":source_tags")
-        tr.sadd(redis_key + ":source_tags", *self.queued_img_data.source_tags)
+
+        if len(self.queued_img_data.source_tags) > 0:
+            tr.sadd(redis_key + ":source_tags", *self.queued_img_data.source_tags)
 
         tr.sadd("index:sites:" + self.queued_img_data.source_site, self.img_id)
         tr.sadd(
