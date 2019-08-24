@@ -21,7 +21,7 @@ def gelbooru_post_to_queued_image(normalized_characters, data):
     resp = requests.get(
         "https://gelbooru.com/index.php?page=post&s=view&id=" + str(data["id"])
     )
-    soup = BeautifulSoup(resp.text())
+    soup = BeautifulSoup(resp.text)
     artists = []
 
     for artist_li in soup.find_all(
