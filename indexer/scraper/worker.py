@@ -22,7 +22,7 @@ def main():
 
     redis_url = sys.argv[1]
 
-    REDIS = Redis(redis_url)
+    REDIS = Redis.from_url(redis_url)
     WORKER_ID = int(sys.argv[2])
 
     with Connection(REDIS):
