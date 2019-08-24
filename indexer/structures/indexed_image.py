@@ -67,9 +67,11 @@ class IndexedImage(object):
 
         d = {"imhash": self.imhash}
         d.update(
-            attr.asdict(self.queued_img_data),
-            filter=lambda attr, value: attr
-            not in ("characters", "authors", "source_tags"),
+            attr.asdict(
+                self.queued_img_data,
+                filter=lambda attr, value: attr
+                not in ("characters", "authors", "source_tags"),
+            )
         )
 
         tr = redis.pipeline()
@@ -91,7 +93,10 @@ class IndexedImage(object):
         tr.sadd(redis_key + ":source_tags", *self.queued_img_data.source_tags)
 
         tr.sadd("index:sites:" + self.queued_img_data.source_site, self.img_id)
-        tr.sadd("index:sites:" + self.queued_img_data.source_site+":source_ids", self.source_id)
+        tr.sadd(
+            "index:sites:" + self.queued_img_data.source_site + ":source_ids",
+            self.source_id,
+        )
 
         tr.sadd("index:rating:" + self.queued_img_data.sfw_rating, self.img_id)
 
