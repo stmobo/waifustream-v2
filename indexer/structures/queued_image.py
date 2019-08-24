@@ -19,8 +19,8 @@ class QueuedImage(object):
     source_site: str = attr.ib(converter=str)
     source_id: str = attr.ib(converter=str)
     source_url: str = attr.ib(converter=str)
-    characters: tuple = attr.ib(converter=convert_redis_sequence)
     sfw_rating: str = attr.ib(converter=str)
+    characters: tuple = attr.ib(converter=convert_redis_sequence)
     authors: tuple = attr.ib(converter=convert_redis_sequence)
     source_tags: tuple = attr.ib(converter=convert_redis_sequence)
 

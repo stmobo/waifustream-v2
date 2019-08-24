@@ -59,20 +59,11 @@ class IndexedImage(object):
 
     @classmethod
     def from_queued_image(cls, img_id, img_hash, queued_image):
-        return cls(
-            img_id=img_id,
-            imhash=img_hash,
-            source_site=queued_image.source_site,
-            source_id=queued_image.source_id,
-            source_url=queued_image.source_url,
-            characters=queued_image.characters,
-            sfw_rating=queued_image.sfw_rating,
-            authors=queued_image.authors,
-            source_tags=queued_image.source_tags,
-        )
+        return cls(img_id=img_id, imhash=img_hash, queued_img_data=queued_image)
 
     def save_to_index(self, redis):
         redis_key = "index:image:" + str(self.img_id)
+        imhash_key = b"imhash:" + self.imhash
 
         d = {"imhash": self.imhash}
         d.update(
@@ -82,6 +73,8 @@ class IndexedImage(object):
         )
 
         tr = redis.pipeline()
+
+        tr.set(imhash_key, self.img_id)
 
         tr.delete(redis_key)
         tr.hmset(redis_key, d)

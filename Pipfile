@@ -11,6 +11,9 @@ pylint = "*"
 rq = "*"
 attrs = "*"
 redis = "*"
+imagehash = "*"
+requests = "*"
+pillow = "*"
 
 [requires]
 python_version = "3.7"
