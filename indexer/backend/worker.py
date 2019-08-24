@@ -28,13 +28,13 @@ def download_image(url):
         return img
 
 
-def process_queued_image(queued_image, min_threshold):
+def process_queued_image(queued_image):
     global REDIS, WORKER_ID
 
     img = download_image(queued_image.source_url)
     imhash = compute_image_hash(img)
 
-    if exists_in_index(REDIS, imhash, min_threshold=min_threshold):
+    if exists_in_index(REDIS, imhash, min_threshold=24):
         return
 
     img_id = generate_snowflake(REDIS, 0, WORKER_ID)
