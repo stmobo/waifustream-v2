@@ -1,4 +1,5 @@
 import io
+import os
 import sys
 import time
 
@@ -61,5 +62,7 @@ def main():
     WORKER_ID = int(sys.argv[2])
 
     with Connection(REDIS):
-        worker = Worker(["backend-index"], name="backend-{:d}".format(WORKER_ID))
+        worker = Worker(
+            ["backend-index"], name="backend-{:d}-{:d}".format(WORKER_ID, os.getpid())
+        )
         worker.work()

@@ -1,4 +1,5 @@
 import sys
+import os
 
 from redis import Redis
 from rq import Connection, Worker
@@ -26,5 +27,7 @@ def main():
     WORKER_ID = int(sys.argv[2])
 
     with Connection(REDIS):
-        worker = Worker(["scraper"], name="scraper-{:d}".format(WORKER_ID))
+        worker = Worker(
+            ["scraper"], name="scraper-{:d}-{:s}".format(WORKER_ID, os.getpid())
+        )
         worker.work()
