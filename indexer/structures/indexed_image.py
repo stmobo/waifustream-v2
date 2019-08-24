@@ -1,0 +1,100 @@
+import attr
+import numpy as np
+
+from .queued_image import QueuedImage
+
+
+def _cvt_imhash(h):
+    if isinstance(h, np.ndarray):
+        return h.tobytes()
+    elif h is None:
+        return None
+    else:
+        return bytes(h)
+
+
+@attr.s(slots=True)
+class IndexedImage(object):
+    """Represents an image that is in the index.
+    """
+
+    # snowflake ID
+    img_id: int = attr.ib(converter=int)
+
+    # img hash
+    imhash: bytes = attr.ib(converter=_cvt_imhash)
+
+    queued_img_data: QueuedImage = attr.ib()
+
+    @property
+    def imhash_ndarray(self):
+        """ndarray: The image hash for this entry, as a uint8 `ndarray`.
+        """
+        return np.frombuffer(self.imhash, dtype=np.uint8)
+
+    def __getattr__(self, name):
+        return getattr(self.queued_img_data, name)
+
+    @classmethod
+    def load_from_index(cls, redis, img_id):
+        redis_key = "index:image:" + str(img_id)
+        exists = redis.exists(redis_key)
+
+        if not exists:
+            raise KeyError("No image " + str(img_id) + " exists in index")
+
+        redis_data = redis.hgetall(redis_key)
+
+        characters = redis.smembers(redis_key + ":characters")
+        authors = redis.smembers(redis_key + ":authors")
+        source_tags = redis.smembers(redis_key + ":source_tags")
+
+        queued_img_data = QueuedImage.from_redis_data(
+            redis_data, characters, authors, source_tags
+        )
+
+        return cls(
+            img_id=img_id, imhash=redis_data["imhash"], queued_img_data=queued_img_data
+        )
+
+    @classmethod
+    def from_queued_image(cls, img_id, img_hash, queued_image):
+        return cls(
+            img_id=img_id,
+            imhash=img_hash,
+            source_site=queued_image.source_site,
+            source_id=queued_image.source_id,
+            source_url=queued_image.source_url,
+            characters=queued_image.characters,
+            sfw_rating=queued_image.sfw_rating,
+            authors=queued_image.authors,
+            source_tags=queued_image.source_tags,
+        )
+
+    def save_to_index(self, redis):
+        redis_key = "index:image:" + str(self.img_id)
+
+        d = {"imhash": self.imhash}
+        d.update(
+            attr.asdict(self.queued_img_data),
+            filter=lambda attr, value: attr
+            not in ("characters", "authors", "source_tags"),
+        )
+
+        tr = redis.pipeline()
+
+        tr.delete(redis_key)
+        tr.hmset(redis_key, d)
+
+        # pylint: disable=no-member
+        tr.delete(redis_key + ":characters")
+        tr.sadd(redis_key + ":characters", self.queued_img_data.characters)
+
+        tr.delete(redis_key + ":authors")
+        tr.sadd(redis_key + ":authors", self.queued_img_data.authors)
+
+        tr.delete(redis_key + ":source_tags")
+        tr.sadd(redis_key + ":source_tags", self.queued_img_data.source_tags)
+
+        tr.execute()
+
