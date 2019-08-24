@@ -7,12 +7,12 @@ def generate_snowflake(redis, group_id, worker_id):
     snowflake_key = "last_snowflake:" + str(group_id) + ":" + str(worker_id)
 
     last_snowflake = redis.get(snowflake_key)
-    last_snowflake = int(last_snowflake.decode("utf-8"))
 
     cur_ts = int(time.time() * 1000) - EPOCH
     cur_seq = 0
 
     if last_snowflake is not None:
+        last_snowflake = int(last_snowflake.decode("utf-8"))
         last_ts = last_snowflake >> 22
         last_seq = last_snowflake & 0xFFF
 
