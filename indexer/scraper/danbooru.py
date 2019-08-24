@@ -139,7 +139,7 @@ def index_character(redis, normalized_character):
         splits = queue_data.source_url.rsplit(".", maxsplit=1)
 
         if len(splits) == 2:
-            if ext not in ["png", "jpeg", "jpg", "gif"]:
+            if splits[1] not in ["png", "jpeg", "jpg", "gif"]:
                 continue
         else:
             continue
