@@ -104,9 +104,9 @@ def search_api(tags, start_id=None):
             continue
 
         for d in data:
-            tags = d["tag_string"].split()
+            ts = d["tag_string"].split()
 
-            if any(t in exclude_tags for t in tags):
+            if any(t in exclude_tags for t in ts):
                 continue
 
             yield d
