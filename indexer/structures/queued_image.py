@@ -19,6 +19,7 @@ class QueuedImage(object):
     source_site: str = attr.ib(converter=str)
     source_id: str = attr.ib(converter=str)
     source_url: str = attr.ib(converter=str)
+    source_original: str = attr.ib(converter=str)
     sfw_rating: str = attr.ib(converter=str)
     characters: tuple = attr.ib(converter=convert_redis_sequence)
     authors: tuple = attr.ib(converter=convert_redis_sequence)
@@ -30,6 +31,7 @@ class QueuedImage(object):
             source_site=redis_data["source_site"].decode("utf-8"),
             source_id=redis_data["source_id"].decode("utf-8"),
             source_url=redis_data["source_url"].decode("utf-8"),
+            source_original=redis_data["source_original"].decode("utf-8"),
             sfw_rating=redis_data["sfw_rating"].decode("utf-8"),
             characters=characters,
             authors=authors,

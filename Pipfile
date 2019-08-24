@@ -16,6 +16,7 @@ imagehash = "*"
 requests = "*"
 pillow = "*"
 rq-dashboard = "*"
+bs4 = "*"
 
 [requires]
 python_version = "3.7"

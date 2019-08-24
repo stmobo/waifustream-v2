@@ -5,6 +5,7 @@ from redis import Redis
 from rq import Connection, Worker
 
 from .danbooru import index_character as index_character_danbooru
+from .gelbooru import index_character as index_character_gelbooru
 
 
 REDIS = None
@@ -16,6 +17,8 @@ def do_indexing_crawl(site, character):
 
     if site == "danbooru":
         index_character_danbooru(REDIS, character)
+    elif site == "gelbooru":
+        index_character_gelbooru(REDIS, character)
 
 
 def main():

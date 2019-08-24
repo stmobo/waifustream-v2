@@ -2,6 +2,7 @@ import io
 from pathlib import Path
 import time
 
+from bs4 import BeautifulSoup
 import requests
 import attr
 import numpy as np
@@ -9,43 +10,44 @@ from rq import Queue
 
 from ..structures import QueuedImage
 
-base_url = "https://danbooru.donmai.us"
+base_url = "https://gelbooru.com/"
 ratings = {"s": "safe", "q": "questionable", "e": "explicit"}
 exclude_tags = ["loli", "shota", "bestiality", "guro", "shadman"]
 
 
-def danbooru_post_to_queued_image(normalized_characters, data):
-    tags = data["tag_string"].split()
+def gelbooru_post_to_queued_image(normalized_characters, data):
+    tags = data["tags"].split()
 
-    url = None
-    if "file_url" in data:
-        url = data["file_url"]
-    elif "large_file_url" in data:
-        url = data["large_file_url"]
-    elif "preview_file_url" in data:
-        url = data["preview_file_url"]
+    resp = requests.get(
+        "https://gelbooru.com/index.php?page=post&s=view&id=" + str(data["id"])
+    )
+    soup = BeautifulSoup(resp.text())
+    artists = []
+
+    for artist_li in soup.find_all(
+        "li", attrs={"class": "tag-type-artist"}, recursive=True
+    ):
+        for a_elem in artist_li.find_all("a", recursive=True):
+            text = "".join(str(t) for t in a_elem.stripped_strings)
+
+            if text != "?" and text in tags:
+                artists.append(text)
 
     return QueuedImage(
-        source_site="danbooru",
+        source_site="gelbooru",
         source_id=data["id"],
-        source_url=url,
+        source_url=data["file_url"],
         source_original=data.get("source", ""),
         sfw_rating=ratings[data["rating"]],
         characters=normalized_characters,
-        authors=data["tag_string_artist"].split(),
+        authors=artists,
         source_tags=tags,
     )
 
 
-def construct_search_endpoint(page, tags, start_id):
-    endpoint = "/posts.json?page={}&limit=200".format(page)
+def construct_search_endpoint(page, tags):
+    endpoint = "/index.php?page=dapi&s=post&q=index&json=1&pid={:d}".format(page)
     tags = list(tags)
-
-    if start_id is not None:
-        if len(tags) >= 2:
-            tags = list(tags[:1])
-
-        tags.append("id%3A%3C" + str(start_id))
 
     if len(tags) > 0:
         endpoint += "&tags={}".format(
@@ -55,13 +57,7 @@ def construct_search_endpoint(page, tags, start_id):
     return base_url + endpoint
 
 
-def search_api(tags, start_id=None):
-    if len(tags) > 2:
-        raise ValueError("Cannot search for more than two tags at a time")
-
-    if start_id is not None:
-        start_id = int(start_id)
-
+def search_api(tags):
     page = 0
     n_tries = 0
 
@@ -73,7 +69,7 @@ def search_api(tags, start_id=None):
             return
 
         print("[search] tags: {} - page {}".format(" ".join(tags), page))
-        response = requests.get(construct_search_endpoint(page, tags, start_id))
+        response = requests.get(construct_search_endpoint(page, tags))
 
         if response.status_code < 200 or response.status_code > 299:
             print(
@@ -97,14 +93,8 @@ def search_api(tags, start_id=None):
         page += 1
         n_tries = 0
 
-        ids = list(int(d["id"]) for d in data)
-        last_id = min(ids)
-
-        if start_id is not None and last_id > start_id:
-            continue
-
         for d in data:
-            ts = d["tag_string"].split()
+            ts = d["tags"].split()
 
             if any(t in exclude_tags for t in ts):
                 continue
@@ -115,31 +105,30 @@ def search_api(tags, start_id=None):
 def associate_character_tag(redis, normalized_character, character_tag):
     tr = redis.pipeline()
 
-    tr.sadd("danbooru:characters", normalized_character)
-    tr.set("danbooru:characters:" + normalized_character, character_tag)
+    tr.sadd("gelbooru:characters", normalized_character)
+    tr.set("gelbooru:characters:" + normalized_character, character_tag)
 
     tr.execute()
 
 
 def index_character(redis, normalized_character):
-    character_tag = redis.get("danbooru:characters:" + normalized_character)
-    if character_tag is None:
+    character_tags = redis.get("gelbooru:characters:" + normalized_character)
+    if character_tags is None:
         return
 
-    character_tag = character_tag.decode("utf-8")
+    character_tags = character_tags.decode("utf-8")
+    character_tags = character_tags.split(",")
 
     queue = Queue("backend-index", connection=redis)
-    for post_data in search_api([character_tag]):
-        queue_data = danbooru_post_to_queued_image((normalized_character,), post_data)
+    for post_data in search_api(character_tags):
+        queue_data = gelbooru_post_to_queued_image((normalized_character,), post_data)
 
         # check URL filetype:
         if queue_data.source_url is None:
             continue
 
         # pylint: disable=no-member
-        splits = queue_data.source_url.rsplit(
-            ".", maxsplit=1
-        )  
+        splits = queue_data.source_url.rsplit(".", maxsplit=1)
 
         if len(splits) == 2:
             if splits[1] not in ["png", "jpeg", "jpg", "gif"]:
@@ -148,4 +137,4 @@ def index_character(redis, normalized_character):
             continue
 
         queue.enqueue("indexer.backend.worker.process_queued_image", queue_data)
-        print("Danbooru: Enqueued post {} for indexing".format(queue_data.source_id))
+        print("Gelbooru: Enqueued post {} for indexing".format(queue_data.source_id))
