@@ -130,6 +130,9 @@ def index_character(redis, normalized_character):
 
     queue = Queue("backend-index", connection=redis)
     for post_data in search_api([character_tag]):
+        if redis.sismember("index:sites:danbooru:source_ids", post_data["id"]):
+            continue
+
         queue_data = danbooru_post_to_queued_image((normalized_character,), post_data)
 
         # check URL filetype:
@@ -137,9 +140,7 @@ def index_character(redis, normalized_character):
             continue
 
         # pylint: disable=no-member
-        splits = queue_data.source_url.rsplit(
-            ".", maxsplit=1
-        )  
+        splits = queue_data.source_url.rsplit(".", maxsplit=1)
 
         if len(splits) == 2:
             if splits[1] not in ["png", "jpeg", "jpg", "gif"]:

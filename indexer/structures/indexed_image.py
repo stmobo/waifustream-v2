@@ -61,6 +61,27 @@ class IndexedImage(object):
     def from_queued_image(cls, img_id, img_hash, queued_image):
         return cls(img_id=img_id, imhash=img_hash, queued_img_data=queued_image)
 
+    def save_duplicate_info(self, redis):
+        redis_key = "index:image:" + str(self.img_id)
+
+        tr = redis.pipeline()
+
+        # pylint: disable=no-member
+        tr.sadd(
+            redis_key + ":aliases",
+            "{}#{}".format(
+                self.queued_img_data.source_site, self.queued_img_data.source_id
+            ),
+        )
+
+        tr.sadd("index:sites:" + self.queued_img_data.source_site, self.img_id)
+        tr.sadd(
+            "index:sites:" + self.queued_img_data.source_site + ":source_ids",
+            self.source_id,
+        )
+
+        tr.execute()
+
     def save_to_index(self, redis):
         redis_key = "index:image:" + str(self.img_id)
         imhash_key = b"imhash:" + self.imhash
@@ -87,13 +108,20 @@ class IndexedImage(object):
         tr.hmset(redis_key, d)
 
         # pylint: disable=no-member
+        tr.sadd(
+            redis_key + ":aliases",
+            "{}#{}".format(
+                self.queued_img_data.source_site, self.queued_img_data.source_id
+            ),
+        )
+
         tr.delete(redis_key + ":characters")
 
         if len(self.queued_img_data.characters) > 0:
             tr.sadd(redis_key + ":characters", *self.queued_img_data.characters)
 
         tr.delete(redis_key + ":authors")
-        
+
         if len(self.queued_img_data.authors) > 0:
             tr.sadd(redis_key + ":authors", *self.queued_img_data.authors)
 

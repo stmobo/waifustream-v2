@@ -10,7 +10,7 @@ from rq import Connection, Worker
 
 from ..structures import QueuedImage, IndexedImage
 from ..snowflake import generate_snowflake
-from ..index import compute_image_hash, exists_in_index
+from ..index import compute_image_hash, search_index
 
 REDIS = None
 WORKER_ID = None
@@ -33,22 +33,24 @@ def download_image(url):
 def process_queued_image(queued_image):
     global REDIS, WORKER_ID
 
-    if REDIS.sismember(
-        "index:sites:" + queued_image.source_site + ":source_ids",
-        queued_image.source_id,
-    ):
-        return
-
     img = download_image(queued_image.source_url)
     imhash = compute_image_hash(img)
 
-    if exists_in_index(REDIS, imhash, min_threshold=24):
-        return
+    results = search_index(REDIS, imhash, min_threshold=24)
 
-    img_id = generate_snowflake(REDIS, 0, WORKER_ID)
+    if len(results) > 0:
+        h = results[0][0]
+        imhash_key = b"imhash:" + h
 
-    indexed_img = IndexedImage.from_queued_image(img_id, imhash, queued_image)
-    indexed_img.save_to_index(REDIS)
+        img_id = REDIS.get(imhash_key)
+        img_id = int(img_id.decode("utf-8"))
+
+        indexed_img = IndexedImage.from_queued_image(img_id, h, queued_image)
+        indexed_img.save_duplicate_info(REDIS)
+    else:
+        img_id = generate_snowflake(REDIS, 0, WORKER_ID)
+        indexed_img = IndexedImage.from_queued_image(img_id, imhash, queued_image)
+        indexed_img.save_to_index(REDIS)
 
     print(
         "Processed: {}#{} ==> img_id:{}".format(
