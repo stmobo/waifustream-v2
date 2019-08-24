@@ -12,7 +12,9 @@ def main():
     redis = Redis.from_url(redis_url)
 
     q = Queue("scraper", connection=redis)
-    q.enqueue("indexer.scraper.worker.do_indexing_crawl", site, character)
+    q.enqueue(
+        "indexer.scraper.worker.do_indexing_crawl", site, character, job_timeout="6h"
+    )
     print("Enqueued scraping job for " + site)
 
 
