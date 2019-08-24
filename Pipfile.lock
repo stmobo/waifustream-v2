@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "d10011b0e2ed2809e50250234ecc9ff91c63779f5a7e53c2a92da0722045623a"
+            "sha256": "cd12b7c329d460e372a13e05d27482b93f4ecf1e8acc5a808cf933ddaeaaa776"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -329,6 +329,10 @@
             ],
             "markers": "implementation_name == 'cpython'",
             "version": "==1.4.0"
+        },
+        "waifustream-v2": {
+            "editable": true,
+            "path": "."
         },
         "wrapt": {
             "hashes": [

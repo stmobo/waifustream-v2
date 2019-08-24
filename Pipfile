@@ -6,6 +6,7 @@ verify_ssl = true
 [dev-packages]
 black = "*"
 pylint = "*"
+waifustream-v2 = {editable = true,path = "."}
 
 [packages]
 rq = "*"
