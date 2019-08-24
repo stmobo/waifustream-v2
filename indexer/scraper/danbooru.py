@@ -136,9 +136,12 @@ def index_character(redis, normalized_character):
         if queue_data.source_url is None:
             continue
 
-        _, ext = queue_data.source_url.rsplit(".", maxsplit=1)
+        splits = queue_data.source_url.rsplit(".", maxsplit=1)
 
-        if ext not in ["png", "jpeg", "jpg", "gif"]:
+        if len(splits) == 2:
+            if ext not in ["png", "jpeg", "jpg", "gif"]:
+                continue
+        else:
             continue
 
         queue.enqueue("indexer.backend.worker.process_queued_image", queue_data)
