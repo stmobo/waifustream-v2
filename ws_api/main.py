@@ -53,7 +53,8 @@ async def init(app, loop):
 
 @app.listener("after_server_stop")
 async def teardown(app, loop):
-    app.redis.close()
+    app.index_redis.close()
+    app.app_redis.close()
 
     await app.index_redis.wait_closed()
     await app.app_redis.wait_closed()
