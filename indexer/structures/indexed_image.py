@@ -215,9 +215,11 @@ class IndexedImage(object):
             )
 
             tr.zadd(
-                "index:tags:merged:" + tag,
+                "index:tags:merged:" + tag + "@" + self.queued_img_data.source_site,
                 {self.img_id: ts},
             )
+
+            tr.zadd("index:tags:merged:" + tag, {self.img_id: ts})
 
         tr.execute()
 
