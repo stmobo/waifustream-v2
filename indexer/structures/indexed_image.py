@@ -66,11 +66,13 @@ class IndexedImage(object):
         if not exists:
             raise KeyError("No image " + str(img_id) + " exists in index")
 
-        redis_data = await aredis.hgetall(redis_key)
+        redis_data = await aredis.hgetall(redis_key, encoding="utf-8")
 
-        characters = await aredis.smembers(redis_key + ":characters")
-        authors = await aredis.smembers(redis_key + ":authors")
-        source_tags = await aredis.smembers(redis_key + ":source_tags")
+        characters = await aredis.smembers(redis_key + ":characters", encoding="utf-8")
+        authors = await aredis.smembers(redis_key + ":authors", encoding="utf-8")
+        source_tags = await aredis.smembers(
+            redis_key + ":source_tags", encoding="utf-8"
+        )
 
         queued_img_data = QueuedImage.from_redis_data(
             redis_data, characters, authors, source_tags
