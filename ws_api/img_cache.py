@@ -36,7 +36,7 @@ async def load_indexed_image(app, indexed_image):
     if len(ext) <= 1:
         raise ValueError("Could not detect filetype of " + url)
 
-    ext = ext[1:].lowercase()
+    ext = ext[1:].lower()
     if ext not in ALLOWED_FILE_TYPES:
         raise ValueError("Invalid filetype " + ext + " for URL " + url)
 
