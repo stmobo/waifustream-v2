@@ -66,8 +66,11 @@ async def get_index_data(request, img_id):
         indexed_image = await IndexedImage.load_from_index_async(
             app.index_redis, img_id
         )
-    except KeyError:
-        raise exceptions.NotFound("No image " + img_id + " in index")
+    except KeyError as e:
+        if e.args[0].startswith("No image"):
+            raise exceptions.NotFound("No image " + str(img_id) + " in index")
+        else:
+            raise e
 
     data = attr.asdict(indexed_image)
     data["imhash"] = base64.b64encode(data["imhash"])
@@ -81,8 +84,11 @@ async def get_image_route(request, img_id):
         indexed_image = await IndexedImage.load_from_index_async(
             app.index_redis, img_id
         )
-    except KeyError:
-        raise exceptions.NotFound("No image " + img_id + " in index")
+    except KeyError as e:
+        if e.args[0].startswith("No image"):
+            raise exceptions.NotFound("No image " + str(img_id) + " in index")
+        else:
+            raise e
 
     img_path = await load_indexed_image(app.app_redis, indexed_image)
     _, ext = osp.splitext(img_path)
