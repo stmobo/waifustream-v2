@@ -1,4 +1,5 @@
 import base64
+import hashlib
 import os
 import os.path as osp
 import time
@@ -124,13 +125,46 @@ async def get_character_images_route(request, character):
     if not (await app.index_redis.exists("index:characters:" + character) > 0):
         raise exceptions.NotFound("No character " + character + " found in index")
 
-    total = await app.index_redis.zcard("index:characters:" + character)
-    ids = await app.index_redis.zrange(
-        "index:characters:" + character,
-        start_index,
-        start_index + count,
-        encoding="utf-8",
-    )
+    filter_sets = []
+
+    if "tag" in request.args:
+        filter_sets.extend("index:tags:merged:" + t for t in request.args["tag"])
+
+    if "author" in request.args:
+        filter_sets.extend("index:authors:" + a for a in request.args["author"])
+
+    if "site" in request.args:
+        filter_sets.extend("index:sites:" + s for s in request.args["site"])
+
+    if "rating" in request.args:
+        filter_sets.extend("index:rating:" + r for r in request.args["rating"])
+
+    if len(filter_sets) > 0:
+        filter_sets.insert(0, "index:characters:" + character)
+
+        h = hashlib.sha1()
+        for s in filter_sets:
+            h.update(s.encode("utf-8"))
+        dest_key = "tmp_query:" + h.hexdigest()
+
+        if not (await app.index_redis.exists(dest_key)):
+            await app.index_redis.zinterstore(dest_key, *filter_sets, aggregate="max")
+            await app.index_redis.expire(dest_key, 15 * 60)
+        
+        ids = await app.index_redis.zrange(
+            dest_key,
+            start_index,
+            start_index + count,
+            encoding="utf-8",
+        )
+    else:
+        total = await app.index_redis.zcard("index:characters:" + character)
+        ids = await app.index_redis.zrange(
+            "index:characters:" + character,
+            start_index,
+            start_index + count,
+            encoding="utf-8",
+        )
 
     resp = []
     for img_id in ids:
