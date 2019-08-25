@@ -149,8 +149,10 @@ async def get_character_images_route(request, character):
 
         if not (await app.index_redis.exists(dest_key)):
             await app.index_redis.zinterstore(dest_key, *filter_sets, aggregate="max")
-            await app.index_redis.expire(dest_key, 15 * 60)
+       
+        await app.index_redis.expire(dest_key, 15 * 60)
         
+        total = await app.index_redis.zcard(dest_key)
         ids = await app.index_redis.zrange(
             dest_key,
             start_index,
