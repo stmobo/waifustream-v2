@@ -168,20 +168,24 @@ class IndexedImage(object):
             dict((ch, "0") for ch in self.queued_img_data.characters),
         )
 
-        tr.zadd("index:authors", dict((au, "0") for au in self.queued_img_data.authors))
+        if len(self.queued_img_data.authors) > 0:
+            tr.zadd(
+                "index:authors", dict((au, "0") for au in self.queued_img_data.authors)
+            )
 
-        tr.zadd(
-            "index:tags:all",
-            dict(
-                (tag + "@" + self.queued_img_data.source_site, "0")
-                for tag in self.queued_img_data.source_tags
-            ),
-        )
+        if len(self.queued_img_data.source_tags) > 0:
+            tr.zadd(
+                "index:tags:all",
+                dict(
+                    (tag + "@" + self.queued_img_data.source_site, "0")
+                    for tag in self.queued_img_data.source_tags
+                ),
+            )
 
-        tr.zadd(
-            "index:tags:" + self.queued_img_data.source_site,
-            dict((tag, "0") for tag in self.queued_img_data.source_tags),
-        )
+            tr.zadd(
+                "index:tags:" + self.queued_img_data.source_site,
+                dict((tag, "0") for tag in self.queued_img_data.source_tags),
+            )
 
         for character in self.queued_img_data.characters:
             if len(character) == 0:
