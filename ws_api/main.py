@@ -96,16 +96,29 @@ async def get_character_images_route(request, character):
     count = 100
     start_index = page * count
 
+    if "page" in request.args:
+        try:
+            page = int(request.args["page"][0])
+        except ValueError:
+            raise exceptions.InvalidUsage("Page argument must be an integer")
+
+    if "count" in request.args:
+        try:
+            count = int(request.args["count"][0])
+        except ValueError:
+            raise exceptions.InvalidUsage("Count argument must be an integer")
+
     if not (await app.index_redis.exists("index:characters:" + character) > 0):
         raise exceptions.NotFound("No character " + character + " found in index")
 
+    total = await app.index_redis.zcard("index:characters:" + character)
     data = await app.index_redis.zrange(
         "index:characters:" + character,
         start_index,
         start_index + count,
         encoding="utf-8",
     )
-    return response.json(list(map(int, data)))
+    return response.json(list(map(int, data)), headers={"X-Total-Items": total})
 
 
 @app.route("/characters/<character:string>", methods=["POST"])
