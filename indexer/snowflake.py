@@ -39,3 +39,7 @@ def generate_snowflake(redis, group_id, worker_id):
     redis.set(snowflake_key, snowflake, px=1)
 
     return snowflake
+
+
+def get_timestamp(snowflake):
+    return (snowflake >> 22) + EPOCH

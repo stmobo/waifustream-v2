@@ -1,6 +1,7 @@
 import attr
 import numpy as np
 
+from ..snowflake import get_timestamp
 from .queued_image import QueuedImage
 
 
@@ -48,6 +49,28 @@ class IndexedImage(object):
         characters = redis.smembers(redis_key + ":characters")
         authors = redis.smembers(redis_key + ":authors")
         source_tags = redis.smembers(redis_key + ":source_tags")
+
+        queued_img_data = QueuedImage.from_redis_data(
+            redis_data, characters, authors, source_tags
+        )
+
+        return cls(
+            img_id=img_id, imhash=redis_data["imhash"], queued_img_data=queued_img_data
+        )
+
+    @classmethod
+    async def load_from_index_async(cls, aredis, img_id):
+        redis_key = "index:image:" + str(img_id)
+        exists = await aredis.exists(redis_key)
+
+        if not exists:
+            raise KeyError("No image " + str(img_id) + " exists in index")
+
+        redis_data = await aredis.hgetall(redis_key)
+
+        characters = await aredis.smembers(redis_key + ":characters")
+        authors = await aredis.smembers(redis_key + ":authors")
+        source_tags = await aredis.smembers(redis_key + ":source_tags")
 
         queued_img_data = QueuedImage.from_redis_data(
             redis_data, characters, authors, source_tags
@@ -130,6 +153,8 @@ class IndexedImage(object):
         if len(self.queued_img_data.source_tags) > 0:
             tr.sadd(redis_key + ":source_tags", *self.queued_img_data.source_tags)
 
+        ts = get_timestamp(self.img_id)
+
         tr.sadd("index:sites:" + self.queued_img_data.source_site, self.img_id)
         tr.sadd(
             "index:sites:" + self.queued_img_data.source_site + ":source_ids",
@@ -139,17 +164,19 @@ class IndexedImage(object):
         tr.sadd("index:rating:" + self.queued_img_data.sfw_rating, self.img_id)
 
         for character in self.queued_img_data.characters:
-            tr.sadd("index:characters", character)
-            tr.sadd("index:characters:" + character, self.img_id)
+            tr.zadd("index:characters", 0, character)
+            tr.zadd("index:characters:" + character, ts, self.img_id)
 
         for author in self.queued_img_data.authors:
-            tr.sadd("index:authors", author)
-            tr.sadd("index:authors:" + author, self.img_id)
+            tr.zadd("index:authors", 0, author)
+            tr.zadd("index:authors:" + author, ts, self.img_id)
 
         for tag in self.queued_img_data.source_tags:
-            tr.sadd("index:tags:" + self.queued_img_data.source_site, tag)
-            tr.sadd(
+            tr.zadd("index:tags:all", 0, tag + "@" + self.queued_img_data.source_site)
+            tr.zadd("index:tags:" + self.queued_img_data.source_site, 0, tag)
+            tr.zadd(
                 "index:tags:" + self.queued_img_data.source_site + ":" + tag,
+                ts,
                 self.img_id,
             )
 
