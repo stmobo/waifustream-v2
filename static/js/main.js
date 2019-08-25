@@ -38,20 +38,39 @@ function fetchSearchResults(character, count, page, tags, rating) {
     return fetch(url).then((resp) => resp.json());
 }
 
+function clearResultsList() {
+    var container = document.getElementById("index-list-container");
+    while (container.firstChild) {
+        container.removeChild(container.firstChild);
+    }
+}
+
+var currentPage = 0;
+var noMoreResults = false;
+
 function doSearch() {
-    fetchSearchResults('monika', 20, 0, null, 'explicit').then(function (results) {
+    fetchSearchResults('monika', 20, currentPage, null, 'explicit').then(function (results) {
+        if (results.length === 0) {
+            noMoreResults = true;
+            return;
+        }
+
+        noMoreResults = false;
         var cards = results.map(createResultCard);
 
         var container = document.getElementById("index-list-container");
-        while (container.firstChild) {
-            container.removeChild(container.firstChild);
-        }
-
         cards.forEach(function (elem) {
             container.appendChild(elem);
         });
     })
 }
+
+window.onscroll = function (ev) {
+    if ((window.innerHeight + window.pageYOffset) >= document.body.offsetHeight - 2) {
+        currentPage += 1;
+        doSearch();
+    }
+};
 
 document.addEventListener('DOMContentLoaded', function () {
     doSearch();
