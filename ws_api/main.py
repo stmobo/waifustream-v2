@@ -210,7 +210,6 @@ async def index_characters_route(request, character):
 
     return response.text("", status=202)
 
-
 def main():
     app.run(host="0.0.0.0", port=8090, workers=os.cpu_count())
 
