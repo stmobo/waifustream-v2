@@ -122,13 +122,25 @@ async def get_character_images_route(request, character):
         raise exceptions.NotFound("No character " + character + " found in index")
 
     total = await app.index_redis.zcard("index:characters:" + character)
-    data = await app.index_redis.zrange(
+    ids = await app.index_redis.zrange(
         "index:characters:" + character,
         start_index,
         start_index + count,
         encoding="utf-8",
     )
-    return response.json(list(map(int, data)), headers={"X-Total-Items": total})
+
+    resp = []
+    for img_id in ids:
+        indexed_image = await IndexedImage.load_from_index_async(
+            app.index_redis, int(img_id)
+        )
+
+        index_data = attr.asdict(indexed_image)
+        index_data["imhash"] = base64.b64encode(index_data["imhash"])
+
+        resp.append(index_data)
+
+    return response.json(resp, headers={"X-Total-Items": total})
 
 
 @app.route("/characters/<character:string>", methods=["POST"])
