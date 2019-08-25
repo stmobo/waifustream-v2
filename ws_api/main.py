@@ -76,8 +76,11 @@ async def get_index_data(request, img_id):
         else:
             raise e
 
-    data = attr.asdict(indexed_image)
-    data["imhash"] = base64.b64encode(data["imhash"])
+    data = {
+        "img_id": indexed_image.img_id,
+        "imhash": base64.b64encode(indexed_image.imhash)
+    }
+    data.update(attr.asdict(indexed_image.queued_img_data))
 
     return response.json(data)
 
@@ -134,9 +137,12 @@ async def get_character_images_route(request, character):
         indexed_image = await IndexedImage.load_from_index_async(
             app.index_redis, int(img_id)
         )
-
-        index_data = attr.asdict(indexed_image)
-        index_data["imhash"] = base64.b64encode(index_data["imhash"])
+        
+        index_data = {
+            "img_id": indexed_image.img_id,
+            "imhash": base64.b64encode(indexed_image.imhash)
+        }
+        index_data.update(attr.asdict(indexed_image.queued_img_data))
 
         resp.append(index_data)
 
