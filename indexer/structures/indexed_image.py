@@ -44,18 +44,22 @@ class IndexedImage(object):
         if not exists:
             raise KeyError("No image " + str(img_id) + " exists in index")
 
-        redis_data = redis.hgetall(redis_key)
+        ret_data = redis.hgetall(redis_key)
+        data = {}
+
+        for key, value in ret_data.items():
+            data[key.decode("utf-8")] = value
 
         characters = redis.smembers(redis_key + ":characters")
         authors = redis.smembers(redis_key + ":authors")
         source_tags = redis.smembers(redis_key + ":source_tags")
 
         queued_img_data = QueuedImage.from_redis_data(
-            redis_data, characters, authors, source_tags
+            data, characters, authors, source_tags
         )
 
         return cls(
-            img_id=img_id, imhash=redis_data["imhash"], queued_img_data=queued_img_data
+            img_id=img_id, imhash=data["imhash"], queued_img_data=queued_img_data
         )
 
     @classmethod
