@@ -105,6 +105,12 @@ async def get_image_route(request, img_id):
     return await response.file_stream(img_path, mime_type=image_types[ext[1:]])
 
 
+@app.route("/characters")
+async def get_all_characters_route(request):
+    characters = await app.index_redis.zrange("index:characters", 0, -1, encoding="utf-8")
+    return response.json(characters)
+
+
 @app.route("/characters/<character:string>")
 async def get_character_images_route(request, character):
     page = 0

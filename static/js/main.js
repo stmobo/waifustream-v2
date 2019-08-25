@@ -1,3 +1,10 @@
+var currentPage = 0;
+var noMoreResults = false;
+
+var currentSearchCharacter = 'monika';
+var currentSearchTags = '';
+var currentSearchRating = '';
+
 function createResultCard(data) {
     var id = data.img_id;
 
@@ -31,7 +38,8 @@ function fetchSearchResults(character, count, page, tags, rating) {
 
     if (tags) {
         tags.forEach(function (t) {
-            url += '&tag=' + encodeURIComponent(t);
+            t = t.trim();
+            if (t.length > 0) url += '&tag=' + encodeURIComponent(t);
         });
     }
 
@@ -45,11 +53,8 @@ function clearResultsList() {
     }
 }
 
-var currentPage = 0;
-var noMoreResults = false;
-
 function doSearch() {
-    fetchSearchResults('monika', 20, currentPage, null, 'explicit').then(function (results) {
+    fetchSearchResults(currentSearchCharacter, 20, currentPage, currentSearchTags, currentSearchRating).then(function (results) {
         if (results.length === 0) {
             noMoreResults = true;
             return;
@@ -67,11 +72,25 @@ function doSearch() {
 
 window.onscroll = function (ev) {
     if ((window.innerHeight + window.pageYOffset) >= document.body.offsetHeight - 2) {
+        if (noMoreResults) return;
+
         currentPage += 1;
         doSearch();
     }
 };
 
-document.addEventListener('DOMContentLoaded', function () {
+function startNewSearch() {
+    clearResultsList();
+
+    currentPage = 0;
+    noMoreResults = false;
+
+    currentSearchRating = $('input[name=index-filter-rating]:checked', '#index-filter-settings').val();
+    currentSearchTags = $('#index-filter-tags').val().split(' ');
+
     doSearch();
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    startNewSearch();
 })
