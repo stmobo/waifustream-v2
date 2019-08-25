@@ -37,8 +37,9 @@
     margin-left: auto;
 }
 
-.index-list-container {
-    width: 85vw;
+#index-list-container {
+    width: 90vw;
+    text-align: center;
 }
 
 .result-card {

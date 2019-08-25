@@ -11,7 +11,7 @@ function createResultCard(data) {
 
     var label = document.createElement('span');
     label.setAttribute('class', 'result-card-label');
-    label.innerText = data.source_site + '#' + id;
+    label.innerText = data.source_site + '#' + data.source_id;
 
     container.appendChild(img);
     container.appendChild(label);
