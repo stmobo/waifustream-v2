@@ -1,5 +1,6 @@
 import attr
 import numpy as np
+import os.path as osp
 
 from ..snowflake import get_timestamp
 from .queued_image import QueuedImage
@@ -24,8 +25,15 @@ class IndexedImage(object):
 
     # img hash
     imhash: bytes = attr.ib(converter=_cvt_imhash)
-
     queued_img_data: QueuedImage = attr.ib()
+    cache_filename: str = attr.ib(converter=str)
+
+    @cache_filename.default
+    def compute_default_cache_filename(self):
+        # pylint: disable=no-member
+        _, ext = osp.splitext(self.queued_img_data.source_url)
+        ext = ext[1:].lower()
+        return str(self.img_id) + "." + ext
 
     @property
     def imhash_ndarray(self):

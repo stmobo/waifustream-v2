@@ -42,9 +42,6 @@ def process_queued_image(queued_image):
     ):
         return
 
-    _, ext = osp.splitext(queued_image.source_url)
-    ext = ext[1:].lower()
-
     img = download_image(queued_image.source_url)
     imhash = compute_image_hash(img)
 
@@ -64,8 +61,7 @@ def process_queued_image(queued_image):
         indexed_img = IndexedImage.from_queued_image(img_id, imhash, queued_image)
         indexed_img.save_to_index(REDIS)
 
-    filename = str(img_id) + "." + ext
-    path = osp.join(IMAGE_CACHE_DIR, filename)
+    path = osp.join(IMAGE_CACHE_DIR, indexed_img.cache_filename)
 
     if not osp.isfile(path):
         img.save(path)
@@ -84,17 +80,12 @@ def cache_saved_image(img_id):
     global REDIS, APP_REDIS, IMAGE_CACHE_DIR
 
     indexed_image = IndexedImage.load_from_index(REDIS, img_id)
-    url = indexed_image.source_url
-
-    _, ext = osp.splitext(url)
-    ext = ext[1:].lower()
-    filename = str(img_id) + "." + ext
-    path = osp.join(IMAGE_CACHE_DIR, filename)
+    path = osp.join(IMAGE_CACHE_DIR, indexed_image.cache_filename)
     if osp.isfile(path):
         return
 
     with open(path, "wb") as f:
-        resp = requests.get(url, stream=True)
+        resp = requests.get(indexed_image.source_url, stream=True)
         resp.raise_for_status()
 
         for chunk in resp.iter_content(chunk_size=128):

@@ -80,6 +80,7 @@ async def get_index_data(request, img_id):
     data = {
         "img_id": str(indexed_image.img_id),
         "imhash": base64.b64encode(indexed_image.imhash),
+        "cache_path": "image/" + indexed_image.cache_filename,
     }
     data.update(attr.asdict(indexed_image.queued_img_data))
 
@@ -174,6 +175,7 @@ async def get_character_images_route(request, character):
         index_data = {
             "img_id": str(indexed_image.img_id),
             "imhash": base64.b64encode(indexed_image.imhash),
+            "cache_path": "image/" + indexed_image.cache_filename,
         }
         index_data.update(attr.asdict(indexed_image.queued_img_data))
 
@@ -209,6 +211,7 @@ async def index_characters_route(request, character):
         )
 
     return response.text("", status=202)
+
 
 def main():
     app.run(host="0.0.0.0", port=8090, workers=os.cpu_count())

@@ -6,7 +6,7 @@ function createResultCard(data) {
 
     var img = document.createElement('img');
     img.setAttribute('class', 'result-card-image');
-    img.setAttribute('src', 'api/image/' + id);
+    img.setAttribute('src', data.cache_path);
     img.setAttribute('alt', id);
 
     var label = document.createElement('span');
