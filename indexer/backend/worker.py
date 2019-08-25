@@ -1,5 +1,6 @@
 import io
 import os
+import os.path as osp
 import sys
 import time
 
@@ -13,7 +14,9 @@ from ..snowflake import generate_snowflake
 from ..index import compute_image_hash, search_index
 
 REDIS = None
+APP_REDIS = None
 WORKER_ID = None
+IMAGE_CACHE_DIR = None
 
 
 def download_image(url):
@@ -31,13 +34,16 @@ def download_image(url):
 
 
 def process_queued_image(queued_image):
-    global REDIS, WORKER_ID
+    global REDIS, APP_REDIS, IMAGE_CACHE_DIR, WORKER_ID
 
     if REDIS.sismember(
         "index:sites:" + queued_image.source_site + ":source_ids",
         queued_image.source_id,
     ):
         return
+
+    _, ext = osp.splitext(queued_image.source_url)
+    ext = ext[1:].lower()
 
     img = download_image(queued_image.source_url)
     imhash = compute_image_hash(img)
@@ -58,6 +64,13 @@ def process_queued_image(queued_image):
         indexed_img = IndexedImage.from_queued_image(img_id, imhash, queued_image)
         indexed_img.save_to_index(REDIS)
 
+    filename = str(img_id) + "." + ext
+    path = osp.join(IMAGE_CACHE_DIR, filename)
+
+    if not osp.isfile(path):
+        img.save(path)
+        APP_REDIS.zadd("img_cache:live", {path: int(time.time() * 1000)})
+
     print(
         "Processed: {}#{} ==> img_id:{}".format(
             indexed_img.source_site, indexed_img.source_id, indexed_img.img_id
@@ -67,13 +80,38 @@ def process_queued_image(queued_image):
     time.sleep(0.5)  # ratelimit to avoid hitting source servers too hard
 
 
+def cache_saved_image(img_id):
+    global REDIS, APP_REDIS, IMAGE_CACHE_DIR
+
+    indexed_image = IndexedImage.load_from_index(REDIS, img_id)
+    url = indexed_image.source_url
+
+    _, ext = osp.splitext(url)
+    ext = ext[1:].lower()
+    filename = str(img_id) + "." + ext
+    path = osp.join(IMAGE_CACHE_DIR, filename)
+    if osp.isfile(path):
+        return
+
+    with open(path, "wb") as f:
+        resp = requests.get(url, stream=True)
+        resp.raise_for_status()
+
+        for chunk in resp.iter_content(chunk_size=128):
+            f.write(chunk)
+
+    APP_REDIS.zadd("img_cache:live", {path: int(time.time() * 1000)})
+
+
 def main():
-    global REDIS, WORKER_ID
+    global REDIS, APP_REDIS, WORKER_ID, IMAGE_CACHE_DIR
 
     redis_url = sys.argv[1]
 
     REDIS = Redis.from_url(redis_url)
-    WORKER_ID = int(sys.argv[2])
+    APP_REDIS = Redis.from_url(sys.argv[2])
+    IMAGE_CACHE_DIR = sys.argv[3]
+    WORKER_ID = int(sys.argv[4])
 
     with Connection(REDIS):
         worker = Worker(

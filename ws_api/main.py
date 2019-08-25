@@ -212,7 +212,7 @@ async def index_characters_route(request, character):
 
 
 def main():
-    app.run(host="0.0.0.0", port=8090)
+    app.run(host="0.0.0.0", port=8090, workers=os.cpu_count())
 
 
 if __name__ == "__main__":
