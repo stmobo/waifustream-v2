@@ -90,7 +90,7 @@ async def get_image_route(request, img_id):
         else:
             raise e
 
-    img_path = await load_indexed_image(app.app_redis, indexed_image)
+    img_path = await load_indexed_image(app, indexed_image)
     _, ext = osp.splitext(img_path)
 
     return await response.file_stream(img_path, mime_type=image_types[ext[1:]])
