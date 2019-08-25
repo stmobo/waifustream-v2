@@ -17,7 +17,7 @@ app = Sanic(load_env="WAIFUSTREAM_")
 app.config.update(
     {
         "PROXIES_COUNT": 1,
-        "IMAGE_CACHE_DIR": "",
+        # "IMAGE_CACHE_DIR": "",
         "IMAGE_CACHE_TTL": 14 * 24 * 3600,
         "REDIS_URL": "redis://localhost:6380",
         "INDEX_DB": 0,
@@ -78,7 +78,7 @@ async def get_index_data(request, img_id):
 
     data = {
         "img_id": indexed_image.img_id,
-        "imhash": base64.b64encode(indexed_image.imhash)
+        "imhash": base64.b64encode(indexed_image.imhash),
     }
     data.update(attr.asdict(indexed_image.queued_img_data))
 
@@ -137,10 +137,10 @@ async def get_character_images_route(request, character):
         indexed_image = await IndexedImage.load_from_index_async(
             app.index_redis, int(img_id)
         )
-        
+
         index_data = {
             "img_id": indexed_image.img_id,
-            "imhash": base64.b64encode(indexed_image.imhash)
+            "imhash": base64.b64encode(indexed_image.imhash),
         }
         index_data.update(attr.asdict(indexed_image.queued_img_data))
 
