@@ -167,22 +167,22 @@ class IndexedImage(object):
             if len(character) == 0:
                 continue
 
-            tr.zadd("index:characters", 0, character)
+            tr.zadd("index:characters", "0", character)
             tr.zadd("index:characters:" + character, ts, self.img_id)
 
         for author in self.queued_img_data.authors:
             if len(author) == 0:
                 continue
 
-            tr.zadd("index:authors", 0, author)
+            tr.zadd("index:authors", "0", author)
             tr.zadd("index:authors:" + author, ts, self.img_id)
 
         for tag in self.queued_img_data.source_tags:
             if len(tag) == 0:
                 continue
 
-            tr.zadd("index:tags:all", 0, tag + "@" + self.queued_img_data.source_site)
-            tr.zadd("index:tags:" + self.queued_img_data.source_site, 0, tag)
+            tr.zadd("index:tags:all", "0", tag + "@" + self.queued_img_data.source_site)
+            tr.zadd("index:tags:" + self.queued_img_data.source_site, "0", tag)
             tr.zadd(
                 "index:tags:" + self.queued_img_data.source_site + ":" + tag,
                 ts,
