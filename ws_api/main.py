@@ -55,7 +55,8 @@ async def init(app, loop):
 async def teardown(app, loop):
     app.redis.close()
 
-    await app.redis.wait_closed()
+    await app.index_redis.wait_closed()
+    await app.app_redis.wait_closed()
 
 
 @app.route("/images/<img_id:int>")
