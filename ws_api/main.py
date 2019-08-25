@@ -50,6 +50,8 @@ async def init(app, loop):
     app.sync_redis = Redis.from_url(app.config["REDIS_URL"], db=app.config["INDEX_DB"])
     app.scraper_queue = Queue("scraper", connection=app.sync_redis)
 
+    app.http_session = aiohttp.ClientSession()
+
 
 @app.listener("after_server_stop")
 async def teardown(app, loop):
@@ -58,6 +60,8 @@ async def teardown(app, loop):
 
     await app.index_redis.wait_closed()
     await app.app_redis.wait_closed()
+
+    await app.http_session.close()
 
 
 @app.route("/images/<img_id:int>")
