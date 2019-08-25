@@ -109,7 +109,6 @@ async def get_image_route(request, img_id):
 async def get_character_images_route(request, character):
     page = 0
     count = 100
-    start_index = page * count
 
     if "page" in request.args:
         try:
@@ -122,6 +121,8 @@ async def get_character_images_route(request, character):
             count = int(request.args["count"][0])
         except ValueError:
             raise exceptions.InvalidUsage("Count argument must be an integer")
+
+    start_index = page * count
 
     if not (await app.index_redis.exists("index:characters:" + character) > 0):
         raise exceptions.NotFound("No character " + character + " found in index")
