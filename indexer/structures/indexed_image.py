@@ -214,5 +214,10 @@ class IndexedImage(object):
                 {self.img_id: ts},
             )
 
+            tr.zadd(
+                "index:tags:merged:" + tag,
+                {self.img_id: ts},
+            )
+
         tr.execute()
 
