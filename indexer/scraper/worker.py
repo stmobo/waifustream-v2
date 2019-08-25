@@ -4,21 +4,26 @@ import os
 from redis import Redis
 from rq import Connection, Worker
 
-from .danbooru import index_character as index_character_danbooru
-from .gelbooru import index_character as index_character_gelbooru
+from .danbooru import ops as danbooru_ops
+from .gelbooru import ops as gelbooru_ops
 
 
 REDIS = None
 WORKER_ID = None
 
+site_ops = {"danbooru": danbooru_ops, "gelbooru": gelbooru_ops}
+
 
 def do_indexing_crawl(site, character):
     global REDIS
 
-    if site == "danbooru":
-        index_character_danbooru(REDIS, character)
-    elif site == "gelbooru":
-        index_character_gelbooru(REDIS, character)
+    site_ops[site]["index"](REDIS, character)
+
+
+def do_associate_character(site, character, tags):
+    global REDIS
+
+    site_ops[site]["associate"](REDIS, character, tags)
 
 
 def main():

@@ -18,6 +18,9 @@ pillow = "*"
 rq-dashboard = "*"
 bs4 = "*"
 sanic = "*"
+aioredis = "*"
+aiohttp = "*"
+aiofiles = "*"
 
 [requires]
 python_version = "3.7"

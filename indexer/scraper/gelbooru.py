@@ -141,3 +141,6 @@ def index_character(redis, normalized_character):
 
         queue.enqueue("indexer.backend.worker.process_queued_image", queue_data)
         print("Gelbooru: Enqueued post {} for indexing".format(queue_data.source_id))
+
+
+ops = {"index": index_character, "associate": associate_character_tag}
