@@ -163,30 +163,45 @@ class IndexedImage(object):
 
         tr.sadd("index:rating:" + self.queued_img_data.sfw_rating, self.img_id)
 
+        tr.zadd(
+            "index:characters",
+            dict((ch, "0") for ch in self.queued_img_data.characters),
+        )
+
+        tr.zadd("index:authors", dict((au, "0") for au in self.queued_img_data.authors))
+
+        tr.zadd(
+            "index:tags:all",
+            dict(
+                (tag + "@" + self.queued_img_data.source_site, "0")
+                for tag in self.queued_img_data.source_tags
+            ),
+        )
+
+        tr.zadd(
+            "index:tags:" + self.queued_img_data.source_site,
+            dict((tag, "0") for tag in self.queued_img_data.source_tags),
+        )
+
         for character in self.queued_img_data.characters:
             if len(character) == 0:
                 continue
 
-            tr.zadd("index:characters", "0", character)
-            tr.zadd("index:characters:" + character, ts, self.img_id)
+            tr.zadd("index:characters:" + character, {self.img_id: ts})
 
         for author in self.queued_img_data.authors:
             if len(author) == 0:
                 continue
 
-            tr.zadd("index:authors", "0", author)
-            tr.zadd("index:authors:" + author, ts, self.img_id)
+            tr.zadd("index:authors:" + author, {self.img_id: ts})
 
         for tag in self.queued_img_data.source_tags:
             if len(tag) == 0:
                 continue
 
-            tr.zadd("index:tags:all", "0", tag + "@" + self.queued_img_data.source_site)
-            tr.zadd("index:tags:" + self.queued_img_data.source_site, "0", tag)
             tr.zadd(
                 "index:tags:" + self.queued_img_data.source_site + ":" + tag,
-                ts,
-                self.img_id,
+                {self.img_id: ts},
             )
 
         tr.execute()
