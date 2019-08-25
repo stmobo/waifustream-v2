@@ -17,6 +17,7 @@ requests = "*"
 pillow = "*"
 rq-dashboard = "*"
 bs4 = "*"
+sanic = "*"
 
 [requires]
 python_version = "3.7"
