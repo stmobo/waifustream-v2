@@ -86,7 +86,7 @@ async def get_index_data(request, img_id):
     return response.json(data)
 
 
-@app.route("/images/<img_id:int>/image")
+@app.route("/image/<img_id:int>")
 async def get_image_route(request, img_id):
     try:
         indexed_image = await IndexedImage.load_from_index_async(
@@ -149,15 +149,12 @@ async def get_character_images_route(request, character):
 
         if not (await app.index_redis.exists(dest_key)):
             await app.index_redis.zinterstore(dest_key, *filter_sets, aggregate="max")
-       
+
         await app.index_redis.expire(dest_key, 15 * 60)
-        
+
         total = await app.index_redis.zcard(dest_key)
         ids = await app.index_redis.zrange(
-            dest_key,
-            start_index,
-            start_index + count,
-            encoding="utf-8",
+            dest_key, start_index, start_index + count, encoding="utf-8"
         )
     else:
         total = await app.index_redis.zcard("index:characters:" + character)
