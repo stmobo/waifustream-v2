@@ -128,9 +128,6 @@ async def index_characters_route(request, character):
         raise exceptions.InvalidUsage("Must send JSON list payload")
 
     for site in request.json:
-        if isinstance(tags, list):
-            tags = ",".join(tags)
-
         app.scraper_queue.enqueue(
             "indexer.scraper.worker.do_indexing_crawl", site, character
         )
