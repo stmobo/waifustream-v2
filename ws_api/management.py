@@ -23,6 +23,8 @@ async def associate_characters_route(request, character):
     if request.json is None or not isinstance(request.json, dict):
         raise exceptions.InvalidUsage("Must send JSON dictionary payload")
 
+    character = character.lower()
+
     for site, tags in request.json.items():
         if isinstance(tags, list):
             tags = ",".join(tags)
@@ -39,6 +41,8 @@ async def associate_characters_route(request, character):
 async def index_characters_route(request, character):
     if request.json is None or not isinstance(request.json, list):
         raise exceptions.InvalidUsage("Must send JSON list payload")
+
+    character = character.lower()
 
     for site in request.json:
         request.app.scraper_queue.enqueue(

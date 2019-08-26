@@ -129,6 +129,8 @@ async def get_character_images_route(request, character):
     page = 0
     count = 100
 
+    character = character.lower()
+
     if "page" in request.args:
         try:
             page = int(request.args["page"][0])
