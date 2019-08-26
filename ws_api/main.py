@@ -121,7 +121,21 @@ async def get_all_characters_route(request):
     characters = await app.index_redis.zrange(
         "index:characters", 0, -1, encoding="utf-8"
     )
-    return response.json(characters)
+
+    resp = []
+
+    for character in characters:
+        character = character.lower()
+        friendly_name = await app.index_redis.get(
+            "character:" + character + ":name", encoding="utf-8"
+        )
+
+        if friendly_name is None:
+            friendly_name = character.capitalize()
+
+        resp.append({"id": character, "name": friendly_name})
+
+    return response.json(resp)
 
 
 @app.route("/characters/<character:string>")

@@ -100,11 +100,11 @@ document.addEventListener('DOMContentLoaded', function () {
     fetch('api/characters')
         .then((resp) => resp.json())
         .then(function (characters) {
-            var opts = characters.map(function (character) {
+            var opts = characters.map(function (char_data) {
                 var opt = document.createElement('option');
 
-                opt.setAttribute('value', character);
-                opt.innerText = character.substring(0, 1).toUpperCase() + character.substring(1);
+                opt.setAttribute('value', char_data['id']);
+                opt.innerText = char_data['name'];
 
                 return opt;
             });
