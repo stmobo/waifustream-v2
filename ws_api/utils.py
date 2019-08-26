@@ -15,6 +15,7 @@ def authorized():
             auth_cookie = request.cookies.get("session")
             if auth_cookie is not None:
                 try:
+                    auth_cookie = base64.b64decode(auth_cookie)
                     username = request.app.signer.unsign(auth_cookie)
                 except SignatureExpired:
                     raise exceptions.Unauthorized("Authorization cookie expired")

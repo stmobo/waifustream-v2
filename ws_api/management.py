@@ -1,3 +1,4 @@
+import base64
 from sanic import Blueprint, exceptions, response
 
 from .utils import authorized
@@ -9,7 +10,10 @@ bp = Blueprint("management")
 @authorized()
 async def login_route(request):
     resp = response.text(request["username"])
-    resp.cookies["session"] = request.app.signer.sign(request["username"])
+    cookie_data = request.app.signer.sign(request["username"])
+
+    resp.cookies["session"] = base64.b64encode(cookie_data).decode("utf-8")
+    resp.cookies["session"]["secure"] = True
     return resp
 
 
