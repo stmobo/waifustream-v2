@@ -2,14 +2,15 @@ from sanic import Blueprint, exceptions, response
 
 from .utils import authorized
 
-
 bp = Blueprint("management")
 
 
-@bp.route("/user/whoami")
+@bp.route("/user/login")
 @authorized()
-async def whoami_route(request):
-    return response.text(request["username"])
+async def login_route(request):
+    resp = response.text(request["username"])
+    resp.cookies["session"] = request.app.signer.sign(request["username"])
+    return resp
 
 
 @bp.route("/characters/<character:string>", methods=["POST"])

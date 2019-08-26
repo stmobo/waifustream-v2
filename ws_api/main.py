@@ -2,11 +2,13 @@ import base64
 import hashlib
 import os
 import os.path as osp
+import secrets
 import time
 
 import aiohttp
 import aioredis
 import attr
+from itsdangerous import TimestampSigner
 from redis import Redis
 from rq import Queue
 from sanic import Sanic, exceptions, response
@@ -49,6 +51,9 @@ async def init(app, loop):
     app.app_redis = await aioredis.create_redis(
         app.config["REDIS_URL"], db=int(app.config["APP_DB"])
     )
+
+    signer_key = secrets.token_bytes(16)
+    app.signer = Signer(signer_key)
 
     app.sync_redis = Redis.from_url(app.config["REDIS_URL"], db=app.config["INDEX_DB"])
     app.scraper_queue = Queue("scraper", connection=app.sync_redis)

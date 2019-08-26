@@ -21,6 +21,7 @@ sanic = "*"
 aioredis = "*"
 aiohttp = "*"
 aiofiles = "*"
+itsdangerous = "*"
 
 [requires]
 python_version = "3.7"
