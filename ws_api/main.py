@@ -52,7 +52,11 @@ async def init(app, loop):
         app.config["REDIS_URL"], db=int(app.config["APP_DB"])
     )
 
-    signer_key = secrets.token_bytes(16)
+    signer_key = await app.app_redis.get("auth:signer_key")
+    if signer_key is None:
+        signer_key = secrets.token_bytes(16)
+        await app.app_redis.set("auth:signer_key", signer_key)
+
     app.signer = TimestampSigner(signer_key)
 
     app.sync_redis = Redis.from_url(app.config["REDIS_URL"], db=app.config["INDEX_DB"])
