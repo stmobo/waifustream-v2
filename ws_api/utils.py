@@ -18,8 +18,10 @@ def authorized():
                     auth_cookie = base64.b64decode(auth_cookie)
                     username = request.app.signer.unsign(auth_cookie)
                 except SignatureExpired:
+                    del request.cookies["session"]
                     raise exceptions.Unauthorized("Authorization cookie expired")
                 except BadSignature:
+                    del request.cookies["session"]
                     raise exceptions.Unauthorized("Bad authorization cookie")
             else:
                 redis = request.app.app_redis
