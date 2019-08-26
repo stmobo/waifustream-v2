@@ -107,7 +107,9 @@ async def get_image_route(request, img_id):
 
 @app.route("/characters")
 async def get_all_characters_route(request):
-    characters = await app.index_redis.zrange("index:characters", 0, -1, encoding="utf-8")
+    characters = await app.index_redis.zrange(
+        "index:characters", 0, -1, encoding="utf-8"
+    )
     return response.json(characters)
 
 
@@ -214,8 +216,10 @@ async def index_characters_route(request, character):
 
     for site in request.json:
         app.scraper_queue.enqueue(
-            "indexer.scraper.worker.do_indexing_crawl", site, character
-            job_timeout="6h"
+            "indexer.scraper.worker.do_indexing_crawl",
+            site,
+            character,
+            job_timeout="6h",
         )
 
     return response.text("", status=202)
