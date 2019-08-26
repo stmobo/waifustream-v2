@@ -1,3 +1,15 @@
+@font-face {
+    font-family: 'Yukarimobile';
+    src: local('Yukarimobile'),
+        url('fonts/Yukarimobile.woff2') format('woff2'),
+        url('fonts/Yukarimobile.woff') format('woff'),
+        url('fonts/yukarimobile.ttf') format('ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+
+
+
 .primary-container {
     display: flex;
     flex-direction: column;
