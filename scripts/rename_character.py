@@ -13,7 +13,7 @@ def main():
     redis = Redis.from_url(redis_url)
 
     redis.zrem("index:characters", from_name)
-    redis.zadd("index:characters", {from_name: "0"})
+    redis.zadd("index:characters", {to_name: "0"})
     redis.rename("index:characters:" + from_name, "index:characters:" + to_name)
 
     print("Performed global rename...")
