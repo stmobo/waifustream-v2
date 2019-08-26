@@ -6,6 +6,12 @@ from .utils import authorized
 bp = Blueprint("management")
 
 
+@bp.route("/user/whoami")
+@authorized()
+async def whoami_route(request):
+    return response.text(request["username"])
+
+
 @bp.route("/characters/<character:string>", methods=["POST"])
 @authorized()
 async def associate_characters_route(request, character):

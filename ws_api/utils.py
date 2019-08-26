@@ -44,6 +44,8 @@ def authorized():
             if not secrets.compare_digest(pw_hash, test_pw_hash):
                 raise exceptions.Unauthorized("Invalid username / password")
 
+            request["username"] = username
+
         return decorated_function
 
     return decorator
