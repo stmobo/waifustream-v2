@@ -53,7 +53,7 @@ async def init(app, loop):
     )
 
     signer_key = secrets.token_bytes(16)
-    app.signer = Signer(signer_key)
+    app.signer = TimestampSigner(signer_key)
 
     app.sync_redis = Redis.from_url(app.config["REDIS_URL"], db=app.config["INDEX_DB"])
     app.scraper_queue = Queue("scraper", connection=app.sync_redis)
