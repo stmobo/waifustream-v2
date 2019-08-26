@@ -20,17 +20,17 @@ IMAGE_CACHE_DIR = None
 
 
 def download_image(url):
-    with io.BytesIO() as bio:
-        resp = requests.get(url, stream=True)
-        resp.raise_for_status()
+    bio = io.BytesIO()
+    resp = requests.get(url, stream=True)
+    resp.raise_for_status()
 
-        for chunk in resp.iter_content(chunk_size=128):
-            bio.write(chunk)
+    for chunk in resp.iter_content(chunk_size=128):
+        bio.write(chunk)
 
-        img = Image.open(bio)
-        img.load()
+    img = Image.open(bio)
+    img.load()
 
-        return img
+    return img, bio
 
 
 def process_queued_image(queued_image):
@@ -42,7 +42,7 @@ def process_queued_image(queued_image):
     ):
         return
 
-    img = download_image(queued_image.source_url)
+    img, bio = download_image(queued_image.source_url)
     imhash = compute_image_hash(img)
 
     results = search_index(REDIS, imhash, min_threshold=24)
@@ -64,8 +64,12 @@ def process_queued_image(queued_image):
     path = osp.join(IMAGE_CACHE_DIR, indexed_img.cache_filename)
 
     if not osp.isfile(path):
-        img.save(path)
+        with open(path, "wb") as f:
+            bio.seek(0)
+            f.write(bio.read())
         APP_REDIS.zadd("img_cache:live", {path: int(time.time() * 1000)})
+
+    bio.close()
 
     print(
         "Processed: {}#{} ==> img_id:{}".format(
