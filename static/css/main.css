@@ -8,13 +8,30 @@
     font-style: normal;
 }
 
-
-
 .primary-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+}
+
+.title-header {
+    margin-top: 1.5rem;
+
+    font-size: 5.5rem;
+    font-weight: 300;
+    line-height: 1.2;
+
+    letter-spacing: -.1rem;
+
+    color: #189B0A;
+    font-family: 'Yukarimobile';
+}
+
+.logo {
+    width: 9rem;
+    height: 9rem;
+    vertical-align: middle;
 }
 
 #index-filter-settings {

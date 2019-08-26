@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 var opt = document.createElement('option');
 
                 opt.setAttribute('value', character);
-                opt.innerText = character.substring(0, 1).toUpperCase() + character.substring(1).toLowerCase();
+                opt.innerText = character.substring(0, 1).toUpperCase() + character.substring(1);
 
                 return opt;
             });
