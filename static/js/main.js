@@ -1,7 +1,7 @@
 var currentPage = 0;
 var noMoreResults = false;
 
-var currentSearchCharacter = 'monika';
+var currentSearchCharacter = '';
 var currentSearchTags = '';
 var currentSearchRating = '';
 
@@ -54,6 +54,8 @@ function clearResultsList() {
 }
 
 function doSearch() {
+    if (!currentSearchCharacter) return;
+
     fetchSearchResults(currentSearchCharacter, 20, currentPage, currentSearchTags, currentSearchRating).then(function (results) {
         if (results.length === 0) {
             noMoreResults = true;
@@ -85,6 +87,7 @@ function startNewSearch() {
     currentPage = 0;
     noMoreResults = false;
 
+    currentSearchCharacter = $('#index-filter-character').val();
     currentSearchRating = $('input[name=index-filter-rating]:checked', '#index-filter-settings').val();
     currentSearchTags = $('#index-filter-tags').val().split(' ');
 
@@ -93,4 +96,19 @@ function startNewSearch() {
 
 document.addEventListener('DOMContentLoaded', function () {
     startNewSearch();
+
+    fetch('api/characters')
+        .then((resp) => resp.json())
+        .then(function (characters) {
+            var opts = characters.map(function (character) {
+                var opt = document.createElement('option');
+
+                opt.setAttribute('value', character);
+                opt.innerText = character.substring(0, 1).toUpperCase() + character.substring(1).toLowerCase();
+
+                return opt;
+            });
+
+            $("#index-filter-character").append(opts);
+        });
 })
