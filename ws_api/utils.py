@@ -46,6 +46,8 @@ def authorized():
 
             request["username"] = username
 
+            return await f(request, *args, **kwargs)
+
         return decorated_function
 
     return decorator
