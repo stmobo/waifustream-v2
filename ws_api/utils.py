@@ -12,16 +12,16 @@ def authorized():
     def decorator(f):
         @wraps(f)
         async def decorated_function(request, *args, **kwargs):
-            auth_cookie = request.cookies.get("session")
+            auth_cookie = request.cookies.get("ws_session")
             if auth_cookie is not None:
                 try:
                     auth_cookie = base64.b64decode(auth_cookie)
                     username = request.app.signer.unsign(auth_cookie)
                 except SignatureExpired:
-                    del request.cookies["session"]
+                    del request.cookies["ws_session"]
                     raise exceptions.Unauthorized("Authorization cookie expired")
                 except BadSignature:
-                    del request.cookies["session"]
+                    del request.cookies["ws_session"]
                     raise exceptions.Unauthorized("Bad authorization cookie")
             else:
                 redis = request.app.app_redis

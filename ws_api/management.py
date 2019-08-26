@@ -12,8 +12,8 @@ async def login_route(request):
     resp = response.text(request["username"])
     cookie_data = request.app.signer.sign(request["username"])
 
-    resp.cookies["session"] = base64.b64encode(cookie_data).decode("utf-8")
-    resp.cookies["session"]["secure"] = True
+    resp.cookies["ws_session"] = base64.b64encode(cookie_data).decode("utf-8")
+    resp.cookies["ws_session"]["secure"] = True
     return resp
 
 
