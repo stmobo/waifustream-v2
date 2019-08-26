@@ -215,6 +215,7 @@ async def index_characters_route(request, character):
     for site in request.json:
         app.scraper_queue.enqueue(
             "indexer.scraper.worker.do_indexing_crawl", site, character
+            job_timeout="6h"
         )
 
     return response.text("", status=202)
